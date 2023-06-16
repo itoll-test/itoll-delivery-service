@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { DeliveryModule } from './delivery/delivery.module';
 import configuration from 'configs/configuration';
 import * as Joi from 'joi';
 
@@ -28,6 +29,7 @@ import * as Joi from 'joi';
         abortEarly: true,
       },
     }),
+    DeliveryModule,
   ],
 })
 export class AppModule {}
