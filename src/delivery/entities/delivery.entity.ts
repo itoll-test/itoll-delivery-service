@@ -11,7 +11,6 @@ import {
 } from 'typeorm';
 import { Business } from './business.entity';
 import { Consignment } from './consignment.entity';
-
 @Entity()
 export class Delivery extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -44,8 +43,8 @@ export class Delivery extends BaseEntity {
   destinationPhone: string;
 
   @ManyToOne(() => Business, (business) => business.deliveries)
-  bussines: Business;
+  business: Business;
 
-  @OneToMany(() => Consignment, (consignment) => consignment.courier)
+  @OneToMany(() => Consignment, (consignment) => consignment.delivery)
   consignments: Consignment[];
 }

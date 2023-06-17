@@ -21,6 +21,6 @@ export class Business extends BaseEntity {
   @Column({ type: 'varchar', length: '255' })
   webhook: string;
 
-  @OneToMany(() => Delivery, (delivery) => delivery.bussines)
+  @OneToMany(() => Delivery, (delivery) => delivery.business)
   deliveries: Delivery[];
 }
