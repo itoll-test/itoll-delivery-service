@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DeliveryModule } from './delivery/delivery.module';
-import configuration from 'configs/configuration';
 import * as Joi from 'joi';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import appConfig from 'configs/app.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [configuration],
+      load: [appConfig],
       cache: true,
       validationSchema: Joi.object({
         env: Joi.string().valid('development', 'production', 'test'),
@@ -30,6 +31,11 @@ import * as Joi from 'joi';
       },
     }),
     DeliveryModule,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (config: ConfigService) => config.get('typeORM')(),
+      inject: [ConfigService],
+    }),
   ],
 })
 export class AppModule {}
