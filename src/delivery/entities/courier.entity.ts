@@ -1,15 +1,9 @@
 import { UUID } from 'crypto';
-import {
-  BaseEntity,
-  Column,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Consignment } from './consignment.entity';
 
 @Entity()
-export class Courier extends BaseEntity {
+export class Courier {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 

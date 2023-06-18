@@ -1,15 +1,9 @@
 import { UUID } from 'crypto';
-import {
-  BaseEntity,
-  Column,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Delivery } from './delivery.entity';
 
 @Entity()
-export class Business extends BaseEntity {
+export class Business {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
@@ -22,5 +16,5 @@ export class Business extends BaseEntity {
   webhook: string;
 
   @OneToMany(() => Delivery, (delivery) => delivery.business)
-  deliveries: Delivery[];
+  deliveries?: Delivery[];
 }

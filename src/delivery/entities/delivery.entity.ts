@@ -1,18 +1,26 @@
 import { UUID } from 'crypto';
 import {
-  BaseEntity,
   Column,
   Entity,
   Index,
   ManyToOne,
-  OneToMany,
+  OneToOne,
   Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Business } from './business.entity';
 import { Consignment } from './consignment.entity';
+
+export enum State {
+  NOT_RECIEVED = 'NOT_RECIEVED',
+  RECIEVED = 'RECIEVED',
+  TOWARD_DESTINATION = 'TOWARD_DESTINATION',
+  DELIVERD = 'DELIVERD',
+  CANCLED = 'CANCLED',
+}
+
 @Entity()
-export class Delivery extends BaseEntity {
+export class Delivery {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
@@ -42,9 +50,12 @@ export class Delivery extends BaseEntity {
   @Column({ type: 'varchar', length: '13' })
   destinationPhone: string;
 
+  @Column({ type: 'enum', enum: State, default: State.NOT_RECIEVED })
+  state: State;
+
   @ManyToOne(() => Business, (business) => business.deliveries)
   business: Business;
 
-  @OneToMany(() => Consignment, (consignment) => consignment.delivery)
-  consignments: Consignment[];
+  @OneToOne(() => Consignment, (consignment) => consignment.delivery)
+  consignments?: Consignment;
 }

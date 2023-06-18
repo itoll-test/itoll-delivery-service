@@ -1,25 +1,19 @@
 import { UUID } from 'crypto';
 import {
-  BaseEntity,
   Column,
   Entity,
   Index,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Courier } from './courier.entity';
 import { Delivery } from './delivery.entity';
 
-enum State {
-  NOT_RECIEVED = 'NOT_RECIEVED',
-  RECIEVED = 'RECIEVED',
-  TOWARD_DESTINATION = 'TOWARD_DESTINATION',
-  DELIVERD = 'DELIVERD',
-}
-
 @Entity()
-export class Consignment extends BaseEntity {
+export class Consignment {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
@@ -27,12 +21,10 @@ export class Consignment extends BaseEntity {
   @Column({ type: 'geography', spatialFeatureType: 'Point' })
   location: Point;
 
-  @Column({ type: 'enum', enum: State, default: State.NOT_RECIEVED })
-  state: State;
-
   @ManyToOne(() => Courier, (courier) => courier.consignments)
-  courier: Courier;
+  courier?: Courier;
 
-  @ManyToOne(() => Delivery, (delivery) => delivery.consignments)
-  delivery: Delivery;
+  @OneToOne(() => Delivery, (delivery) => delivery.consignments)
+  @JoinColumn()
+  delivery?: Delivery;
 }
