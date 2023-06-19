@@ -30,12 +30,12 @@ import appConfig from 'configs/app.config';
         abortEarly: true,
       },
     }),
-    DeliveryModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => config.get('typeORM')(),
       inject: [ConfigService],
     }),
+    DeliveryModule,
   ],
 })
 export class AppModule {}
