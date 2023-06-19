@@ -4,14 +4,16 @@ import { DeliveryController } from './delivery.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Delivery } from './entities/delivery.entity';
 import { Business } from './entities/business.entity';
-import { Consignment } from './entities/consignment.entity';
 import { Courier } from './entities/courier.entity';
+import { HttpModule } from '@nestjs/axios';
+import { BusinessService } from './business.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Delivery, Business, Consignment, Courier]),
+    HttpModule,
+    TypeOrmModule.forFeature([Delivery, Business, Courier]),
   ],
   controllers: [DeliveryController],
-  providers: [DeliveryService],
+  providers: [DeliveryService, BusinessService],
 })
 export class DeliveryModule {}
