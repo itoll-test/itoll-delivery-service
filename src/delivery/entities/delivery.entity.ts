@@ -4,16 +4,16 @@ import {
   Entity,
   Index,
   ManyToOne,
-  OneToOne,
   Point,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Business } from './business.entity';
-import { Consignment } from './consignment.entity';
+import { Courier } from './courier.entity';
 
 export enum State {
-  NOT_RECIEVED = 'NOT_RECIEVED',
-  RECIEVED = 'RECIEVED',
+  NOT_ACCPTED_BY_COURIER = 'NOT_ACCPTED_BY_COURIER',
+  ACCPTED_BY_COURIER = 'ACCPTED_BY_COURIER',
+  RECIEVED_BY_COURIER = 'RECIEVED_BY_COURIER',
   TOWARD_DESTINATION = 'TOWARD_DESTINATION',
   DELIVERD = 'DELIVERD',
   CANCLED = 'CANCLED',
@@ -26,10 +26,10 @@ export class Delivery {
 
   @Index({ spatial: true })
   @Column({ type: 'geography', spatialFeatureType: 'Point' })
-  originLocation: Point;
+  senderLocation: Point;
 
   @Column({ type: 'varchar', length: '255' })
-  originAddress: string;
+  senderAddress: string;
 
   @Column({ type: 'varchar', length: '50' })
   senderName: string;
@@ -39,23 +39,30 @@ export class Delivery {
 
   @Index({ spatial: true })
   @Column({ type: 'geography', spatialFeatureType: 'Point' })
-  destinationLocation: Point;
+  recieverLocation: Point;
 
   @Column({ type: 'varchar', length: '255' })
-  destinationAddress: string;
+  recieverAddress: string;
 
   @Column({ type: 'varchar', length: '50' })
-  destinationName: string;
+  recieverName: string;
 
   @Column({ type: 'varchar', length: '13' })
-  destinationPhone: string;
+  recieverPhone: string;
 
-  @Column({ type: 'enum', enum: State, default: State.NOT_RECIEVED })
+  @Index({ spatial: true })
+  @Column({ type: 'geography', spatialFeatureType: 'Point' })
+  currentLocation: Point;
+
+  @Column({ type: 'enum', enum: State, default: State.NOT_ACCPTED_BY_COURIER })
   state: State;
 
-  @ManyToOne(() => Business, (business) => business.deliveries)
-  business: Business;
+  @Column('uuid')
+  businessId: UUID;
 
-  @OneToOne(() => Consignment, (consignment) => consignment.delivery)
-  consignments?: Consignment;
+  @ManyToOne(() => Courier, (courier) => courier.deliveries)
+  courier?: Courier;
+
+  @ManyToOne(() => Business, (business) => business.deliveries)
+  business?: Business;
 }

@@ -1,6 +1,6 @@
 import { UUID } from 'crypto';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Consignment } from './consignment.entity';
+import { Delivery } from './delivery.entity';
 
 @Entity()
 export class Courier {
@@ -16,6 +16,6 @@ export class Courier {
   @Column({ type: 'varchar', length: '128' })
   password: string;
 
-  @OneToMany(() => Consignment, (consignment) => consignment.courier)
-  consignments: Consignment[];
+  @OneToMany(() => Delivery, (delivery) => delivery.courier)
+  deliveries?: Delivery[];
 }
