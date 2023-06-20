@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DeliveryModule } from './delivery/delivery.module';
 import * as Joi from 'joi';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import appConfig from 'configs/app.config';
 
 @Module({
@@ -30,12 +32,14 @@ import appConfig from 'configs/app.config';
         abortEarly: true,
       },
     }),
-    DeliveryModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (config: ConfigService) => config.get('typeORM')(),
+      useFactory: (config: ConfigService) => config.get('typeORM')(),
       inject: [ConfigService],
     }),
+    DeliveryModule,
+    AuthModule,
+    UsersModule,
   ],
 })
 export class AppModule {}

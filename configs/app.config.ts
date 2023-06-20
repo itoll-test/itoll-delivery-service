@@ -1,3 +1,4 @@
+import { JwtModuleOptions } from '@nestjs/jwt';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { dataSourceOptions } from 'db/data-source';
 
@@ -14,5 +15,11 @@ export default () => ({
     //TODO: thinkabout this
     synchronize: process.env.NODE_ENV === 'development' ? true : false,
     logging: process.env.NODE_ENV === 'development' ? true : false,
+  }),
+  passport: (): JwtModuleOptions => ({
+    secret: process.env.ITOLL_PASSPORT_SECRET || 'itoll_secret',
+    signOptions: {
+      expiresIn: process.env.ITOLL_PASSPORT_EXPIRATION_TIME || '10m',
+    },
   }),
 });

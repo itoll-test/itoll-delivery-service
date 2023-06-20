@@ -1,28 +1,18 @@
 import { UUID } from 'crypto';
-import {
-  BaseEntity,
-  Column,
-  Entity,
-  Index,
-  ManyToOne,
-  OneToMany,
-  Point,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Business } from './business.entity';
-import { Consignment } from './consignment.entity';
+import { Column, Entity, Index, Point, PrimaryGeneratedColumn } from 'typeorm';
+import { State } from '../enums';
 
 @Entity()
-export class Delivery extends BaseEntity {
+export class Delivery {
   @PrimaryGeneratedColumn('uuid')
   id: UUID;
 
   @Index({ spatial: true })
   @Column({ type: 'geography', spatialFeatureType: 'Point' })
-  originLocation: Point;
+  senderLocation: Point;
 
   @Column({ type: 'varchar', length: '255' })
-  originAddress: string;
+  senderAddress: string;
 
   @Column({ type: 'varchar', length: '50' })
   senderName: string;
@@ -32,20 +22,27 @@ export class Delivery extends BaseEntity {
 
   @Index({ spatial: true })
   @Column({ type: 'geography', spatialFeatureType: 'Point' })
-  destinationLocation: Point;
+  recieverLocation: Point;
 
   @Column({ type: 'varchar', length: '255' })
-  destinationAddress: string;
+  recieverAddress: string;
 
   @Column({ type: 'varchar', length: '50' })
-  destinationName: string;
+  recieverName: string;
 
   @Column({ type: 'varchar', length: '13' })
-  destinationPhone: string;
+  recieverPhone: string;
 
-  @ManyToOne(() => Business, (business) => business.deliveries)
-  bussines: Business;
+  @Index({ spatial: true })
+  @Column({ type: 'geography', spatialFeatureType: 'Point' })
+  currentLocation: Point;
 
-  @OneToMany(() => Consignment, (consignment) => consignment.courier)
-  consignments: Consignment[];
+  @Column({ type: 'enum', enum: State, default: State.NOT_ACCPTED_BY_COURIER })
+  state: State;
+
+  @Column('uuid')
+  businessId: UUID;
+
+  @Column('uuid')
+  courierId: UUID;
 }
