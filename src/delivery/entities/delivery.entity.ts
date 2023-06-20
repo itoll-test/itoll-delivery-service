@@ -1,23 +1,6 @@
 import { UUID } from 'crypto';
-import {
-  Column,
-  Entity,
-  Index,
-  ManyToOne,
-  Point,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Business } from './business.entity';
-import { Courier } from './courier.entity';
-
-export enum State {
-  NOT_ACCPTED_BY_COURIER = 'NOT_ACCPTED_BY_COURIER',
-  ACCPTED_BY_COURIER = 'ACCPTED_BY_COURIER',
-  RECIEVED_BY_COURIER = 'RECIEVED_BY_COURIER',
-  TOWARD_DESTINATION = 'TOWARD_DESTINATION',
-  DELIVERD = 'DELIVERD',
-  CANCLED = 'CANCLED',
-}
+import { Column, Entity, Index, Point, PrimaryGeneratedColumn } from 'typeorm';
+import { State } from '../enums';
 
 @Entity()
 export class Delivery {

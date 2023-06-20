@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { State } from '../entities/delivery.entity';
+import { State } from '../enums';
 
 export class UpdateDeliveryStateDto {
   @Expose()

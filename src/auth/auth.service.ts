@@ -11,7 +11,10 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
+    const user = await this.usersService.findOneByUsername(username);
+    //TODO:This block should consider role at login time in beside current password.
+    //Because each user has only one role when login.
+    //For simplicity ignored.
     if (user && user.password === pass) {
       delete user.password;
       return user;
