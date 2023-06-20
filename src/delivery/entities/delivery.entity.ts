@@ -60,9 +60,6 @@ export class Delivery {
   @Column('uuid')
   businessId: UUID;
 
-  @ManyToOne(() => Courier, (courier) => courier.deliveries)
-  courier?: Courier;
-
-  @ManyToOne(() => Business, (business) => business.deliveries)
-  business?: Business;
+  @Column('uuid')
+  courierId: UUID;
 }
