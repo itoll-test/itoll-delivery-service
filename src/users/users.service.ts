@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { UUID } from 'crypto';
 import { Role } from 'src/auth/enums/role.enum';
 
 // This should be a real class/interface representing a user entity
@@ -22,7 +23,22 @@ export class UsersService {
       roles: [Role.Courier],
     },
   ];
-  async findOne(username: string): Promise<User | undefined> {
+
+  /**
+   * This method accept username as input and returns a user if exists, Otherwise it returns undefined
+   * @param username string
+   * @returns User | undefined
+   */
+  async findOneByUsername(username: string): Promise<User | undefined> {
     return this.users.find((user) => user.username === username);
+  }
+
+  /**
+   * This method accept id as input and returns a user if exists, Otherwise it returns undefined
+   * @param id UUID
+   * @returns User | undefined
+   */
+  async findOneById(id: UUID): Promise<User | undefined> {
+    return this.users.find((user) => user.userId === id);
   }
 }
