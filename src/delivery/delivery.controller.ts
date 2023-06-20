@@ -7,35 +7,40 @@ import {
   Param,
   HttpException,
   ParseUUIDPipe,
-  ParseEnumPipe,
   HttpStatus,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { DeliveryService } from './delivery.service';
 import { CreateDeliveryDto } from './dto/create-delivery.dto';
 import { UpdateDeliveryStateDto } from './dto/update-delivery-state.dto';
-import { Business } from './entities/business.entity';
-import { BusinessStub } from './test/stubs/business.stub';
-import { Delivery, State } from './entities/delivery.entity';
+import { Delivery } from './entities/delivery.entity';
 import { UUID } from 'crypto';
 import { UpdateDeliveryLocationDto } from './dto/update-delivery-location.dto';
-import { BusinessService } from './business.service';
+import { JwtAuthGuard, RolesGuard } from 'src/auth/guards';
+import { Role } from 'src/auth/enums/role.enum';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { State } from './enums';
+import { UsersService } from 'src/users/users.service';
 
 @Controller({ version: '1', path: 'delivery' })
 export class DeliveryController {
   constructor(
     private readonly deliveryService: DeliveryService,
-    private readonly businessService: BusinessService,
+    private readonly usersService: UsersService,
   ) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Business)
   async create(
     @Body() createDeliveryDto: CreateDeliveryDto,
+    @Request() req,
   ): Promise<Delivery | HttpException> {
     try {
-      const business: Business = BusinessStub();
       const newDelivery = await this.deliveryService.createDelivery(
         createDeliveryDto,
-        business,
+        req.user.userId,
       );
       return newDelivery;
     } catch (error) {
@@ -43,72 +48,111 @@ export class DeliveryController {
     }
   }
 
-  @Get(':state/state')
-  async findAllNotAcceptedByCourier(
-    @Param('state', new ParseEnumPipe(State))
-    state: State,
-  ): Promise<Delivery[] | HttpException> {
+  @Get('NOT_ACCPTED_BY_COURIER/state')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Courier)
+  async findAllNotAcceptedByCourier(): Promise<Delivery[] | HttpException> {
     try {
-      if (state !== State.NOT_ACCPTED_BY_COURIER) {
-        throw new HttpException(
-          'State you entered is not allowed',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      return await this.deliveryService.findAllByState(state);
+      return await this.deliveryService.findAllByState(
+        State.NOT_ACCPTED_BY_COURIER,
+      );
     } catch (error) {
       throw error;
     }
   }
 
-  @Get(':id')
+  @Patch(':id/confirm')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Courier)
   async findOne(
     @Param('id', ParseUUIDPipe) id: UUID,
+    @Request() req,
   ): Promise<Delivery | HttpException> {
     try {
-      return this.deliveryService.findOne(id);
+      const delivery: Delivery = await this.deliveryService.findOne(id);
+      if (delivery === null) {
+        throw new HttpException(
+          "Delivery entity doesn't exists",
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      const updateDelivery = {
+        state: State.ACCPTED_BY_COURIER,
+        courierId: req.user.userId,
+      };
+      return this.deliveryService.update(id, updateDelivery);
     } catch (error) {
       throw error;
     }
   }
 
   @Patch(':id/state')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Courier)
   async updateState(
     @Param('id', ParseUUIDPipe) id: UUID,
     @Body() updateDeliveryStateDto: UpdateDeliveryStateDto,
   ): Promise<Delivery | HttpException> {
     try {
-      //TODO: check delivery with this ID exists.
-      const delivery: Delivery = await this.deliveryService.update(
+      const delivery: Delivery = await this.deliveryService.findOne(id);
+      if (delivery === null) {
+        throw new HttpException(
+          "Delivery entity doesn't exists",
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (
+        delivery.state === 'CANCLED' ||
+        delivery.state === 'DELIVERD' ||
+        updateDeliveryStateDto.state === 'CANCLED'
+      ) {
+        throw new HttpException('Action not allowed', HttpStatus.FORBIDDEN);
+      }
+
+      const updatedDelivery: Delivery = await this.deliveryService.update(
         id,
         updateDeliveryStateDto,
       );
 
-      const business = await this.businessService.findOne(delivery.businessId);
+      const user = await this.usersService.findOneById(delivery.businessId);
+      this.deliveryService.webhook(user.webhook, updatedDelivery);
 
-      this.deliveryService.webhook(business.webhook, delivery);
-
-      return delivery;
+      return updatedDelivery;
     } catch (error) {
       throw error;
     }
   }
 
   @Patch(':id/location')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Courier)
   async updateLocation(
     @Param('id', ParseUUIDPipe) id: UUID,
     @Body() updateDeliveryLocationDto: UpdateDeliveryLocationDto,
   ): Promise<Delivery | HttpException> {
     try {
-      //TODO: check delivery with this ID exists.
-      const delivery: Delivery = await this.deliveryService.update(
+      const delivery: Delivery = await this.deliveryService.findOne(id);
+      if (delivery === null) {
+        throw new HttpException(
+          "Delivery entity doesn't exists",
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (delivery.state === 'CANCLED' || delivery.state === 'DELIVERD') {
+        throw new HttpException('Action not allowed', HttpStatus.FORBIDDEN);
+      }
+
+      const updatedDelivery: Delivery = await this.deliveryService.update(
         id,
         updateDeliveryLocationDto,
       );
-      const business = await this.businessService.findOne(delivery.businessId);
 
-      this.deliveryService.webhook(business.webhook, delivery);
-      return delivery;
+      const user = await this.usersService.findOneById(delivery.businessId);
+      this.deliveryService.webhook(user.webhook, updatedDelivery);
+
+      return updatedDelivery;
     } catch (error) {
       throw error;
     }
@@ -120,6 +164,12 @@ export class DeliveryController {
   ): Promise<Delivery | HttpException> {
     try {
       const delivery: Delivery = await this.deliveryService.findOne(id);
+      if (delivery === null) {
+        throw new HttpException(
+          "Delivery entity doesn't exists",
+          HttpStatus.NOT_FOUND,
+        );
+      }
 
       if (
         delivery.state === State.NOT_ACCPTED_BY_COURIER ||

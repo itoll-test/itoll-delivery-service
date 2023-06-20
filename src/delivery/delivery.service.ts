@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { CreateDeliveryDto } from './dto/create-delivery.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Delivery, State } from './entities/delivery.entity';
+import { Delivery } from './entities/delivery.entity';
 import { Repository } from 'typeorm';
-import { Business } from './entities/business.entity';
 import { UUID } from 'crypto';
 import { UpdateDeliveryLocationDto, UpdateDeliveryStateDto } from './dto';
 import { HttpService } from '@nestjs/axios';
+import { State } from './enums';
 
 @Injectable()
 export class DeliveryService {
@@ -19,18 +19,18 @@ export class DeliveryService {
   //business
   /**
    * @param createDeliveryDto
-   * @param Business
+   * @param userId
    * @returns Promise<Delivery>
    */
   async createDelivery(
     createDeliveryDto: CreateDeliveryDto,
-    business: Business,
+    userId: UUID,
   ): Promise<Delivery> {
     const newDelivery: Delivery =
       this.deliveryRepository.create(createDeliveryDto);
 
     newDelivery.currentLocation = newDelivery.senderLocation;
-    newDelivery.business = business;
+    newDelivery.businessId = userId;
 
     return this.deliveryRepository.save(newDelivery);
   }
@@ -67,26 +67,33 @@ export class DeliveryService {
   ): Promise<Delivery> {
     const delivery = await this.deliveryRepository.findOne({ where: { id } });
 
-    return await this.deliveryRepository.save({
+    const updatedDelivery: Delivery = await this.deliveryRepository.save({
       ...delivery,
       ...updateDelivery,
     });
+
+    return updatedDelivery;
   }
 
   /**
-   * This method invoke webhook url
+   * This method invoke business webhook
    * @param url:string
    * @returns
    */
   async webhook(url: string, delivery: Delivery): Promise<void> {
-    console.log(url);
-    this.httpService.post(url, delivery).subscribe({
-      complete: () => {
-        console.log('completed');
-      },
-      error: (err) => {
-        throw err;
-      },
-    });
+    this.httpService
+      .post(url, {
+        id: delivery.id,
+        state: delivery.state,
+        currentLocation: delivery.currentLocation,
+      })
+      .subscribe({
+        complete: () => {
+          console.log('webhook call completed');
+        },
+        error: (err) => {
+          throw err;
+        },
+      });
   }
 }
