@@ -140,7 +140,12 @@ export class DeliveryController {
         );
       }
 
-      if (delivery.state === 'CANCLED' || delivery.state === 'DELIVERD') {
+      if (
+        delivery.state === 'CANCLED' ||
+        delivery.state === 'NOT_ACCPTED_BY_COURIER' ||
+        delivery.state === 'ACCPTED_BY_COURIER' ||
+        delivery.state === 'DELIVERD'
+      ) {
         throw new HttpException('Action not allowed', HttpStatus.FORBIDDEN);
       }
 
