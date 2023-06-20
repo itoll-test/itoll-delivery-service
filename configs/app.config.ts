@@ -19,7 +19,7 @@ export default () => ({
   passport: (): JwtModuleOptions => ({
     secret: process.env.ITOLL_PASSPORT_SECRET || 'itoll_secret',
     signOptions: {
-      expiresIn: process.env.ITOLL_PASSPORT_EXPIRATION_TIME || '60s',
+      expiresIn: process.env.ITOLL_PASSPORT_EXPIRATION_TIME || '10m',
     },
   }),
 });
