@@ -3,12 +3,18 @@ import { UUID } from 'crypto';
 import { Role } from 'src/auth/enums/role.enum';
 
 // This should be a real class/interface representing a user entity
-export type User = any;
+export type User = {
+  userId: UUID;
+  username: string;
+  password: string;
+  webhook?: string;
+  roles: Array<string>;
+};
 
 @Injectable()
 export class UsersService {
   // This users added only for test perpuse, don't be worry about plain password
-  private readonly users = [
+  private readonly users: User[] = [
     {
       userId: 'fb8edac0-0688-4cc7-8228-b3f405af3d0a',
       username: 'business',
