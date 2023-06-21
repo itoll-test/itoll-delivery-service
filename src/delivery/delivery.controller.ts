@@ -22,7 +22,15 @@ import { Role } from 'src/auth/enums/role.enum';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { State } from './enums';
 import { UsersService } from 'src/users/users.service';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('Delivery')
 @Controller({ version: '1', path: 'delivery' })
 export class DeliveryController {
   constructor(
@@ -33,6 +41,8 @@ export class DeliveryController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Business)
+  @ApiOperation({ summary: 'Add new delivery by business role' })
+  @ApiResponse({ type: Delivery })
   async create(
     @Body() createDeliveryDto: CreateDeliveryDto,
     @Request() req,
@@ -48,9 +58,48 @@ export class DeliveryController {
     }
   }
 
+  @Patch(':id/cancel')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Business)
+  @ApiOperation({
+    summary:
+      'Cancel delivery if the state is NOT_ACCPTED_BY_COURIER or ACCPTED_BY_COURIER by business role',
+  })
+  @ApiResponse({ type: Delivery })
+  async cancel(
+    @Param('id', ParseUUIDPipe) id: UUID,
+  ): Promise<Delivery | HttpException> {
+    try {
+      const delivery: Delivery = await this.deliveryService.findOne(id);
+      if (delivery === null) {
+        throw new HttpException(
+          "Delivery entity doesn't exists",
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (
+        delivery.state === State.NOT_ACCPTED_BY_COURIER ||
+        delivery.state === State.ACCPTED_BY_COURIER
+      ) {
+        return await this.deliveryService.update(id, { state: State.CANCLED });
+      }
+      throw new HttpException(
+        'Action you do is not allowed.',
+        HttpStatus.FORBIDDEN,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
   @Get('NOT_ACCPTED_BY_COURIER/state')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Courier)
+  @ApiOperation({
+    summary: 'Retrieve all delivries that are not accpted by any courier',
+  })
+  @ApiResponse({ type: Delivery, isArray: true })
   async findAllNotAcceptedByCourier(): Promise<Delivery[] | HttpException> {
     try {
       return await this.deliveryService.findAllByState(
@@ -64,6 +113,10 @@ export class DeliveryController {
   @Patch(':id/confirm')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Courier)
+  @ApiOperation({
+    summary: 'Confirm a delivery request by courier role',
+  })
+  @ApiResponse({ type: Delivery })
   async findOne(
     @Param('id', ParseUUIDPipe) id: UUID,
     @Request() req,
@@ -89,6 +142,10 @@ export class DeliveryController {
   @Patch(':id/state')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Courier)
+  @ApiOperation({
+    summary: 'Update delivery state by courier role',
+  })
+  @ApiResponse({ type: Delivery })
   async updateState(
     @Param('id', ParseUUIDPipe) id: UUID,
     @Body() updateDeliveryStateDto: UpdateDeliveryStateDto,
@@ -127,6 +184,10 @@ export class DeliveryController {
   @Patch(':id/location')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Courier)
+  @ApiOperation({
+    summary: 'Update delivery location by courier role',
+  })
+  @ApiResponse({ type: Delivery })
   async updateLocation(
     @Param('id', ParseUUIDPipe) id: UUID,
     @Body() updateDeliveryLocationDto: UpdateDeliveryLocationDto,
@@ -158,34 +219,6 @@ export class DeliveryController {
       this.deliveryService.webhook(user.webhook, updatedDelivery);
 
       return updatedDelivery;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Patch(':id/cancel')
-  async cancel(
-    @Param('id', ParseUUIDPipe) id: UUID,
-  ): Promise<Delivery | HttpException> {
-    try {
-      const delivery: Delivery = await this.deliveryService.findOne(id);
-      if (delivery === null) {
-        throw new HttpException(
-          "Delivery entity doesn't exists",
-          HttpStatus.NOT_FOUND,
-        );
-      }
-
-      if (
-        delivery.state === State.NOT_ACCPTED_BY_COURIER ||
-        delivery.state === State.ACCPTED_BY_COURIER
-      ) {
-        return await this.deliveryService.update(id, { state: State.CANCLED });
-      }
-      throw new HttpException(
-        'Action you do is not allowed.',
-        HttpStatus.FORBIDDEN,
-      );
     } catch (error) {
       throw error;
     }
