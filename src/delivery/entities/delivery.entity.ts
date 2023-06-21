@@ -120,6 +120,6 @@ export class Delivery {
     description: 'The courier id',
     required: false,
   })
-  @Column('uuid')
-  courierId: UUID;
+  @Column({ type: 'uuid', nullable: true })
+  courierId?: UUID;
 }
