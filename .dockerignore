@@ -1,0 +1,12 @@
+Dockerfile
+docker-compose.yaml
+.dockerignore
+.git*
+README.md
+LICENSE
+
+node_modules
+npm-debug.log
+
+test
+.prettierrc
