@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+  itoll:
+    depends_on:
+      - postgis
+    build: .
+    image: itoll:latest
+    restart: unless-stopped
+    env_file: .env.itoll
+    expose:
+      - 3000/tcp
+    networks:
+      - edge
+      - db
+    ports:
+      - 3000:3000/tcp
+
+  postgis:
+    hostname: postgis
+    image: postgis/postgis:15-3.3
+    restart: unless-stopped
+    env_file: .env.postgres
+    expose:
+      - 5432/tcp
+    networks:
+      - db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+networks:
+  edge:
+  db:
+
+
+volumes:
+  pgdata:

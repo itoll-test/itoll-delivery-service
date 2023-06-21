@@ -16,10 +16,10 @@ import appConfig from 'configs/app.config';
         env: Joi.string().valid('development', 'production', 'test'),
         port: Joi.number(),
         userPort: Joi.number(),
-        rabbitMQ: Joi.object().keys({
-          url: Joi.string().uri(),
-          userQueue: Joi.string(),
-        }),
+        // rabbitMQ: Joi.object().keys({
+        //   url: Joi.string().uri(),
+        //   userQueue: Joi.string(),
+        // }),
         postgres: Joi.object().keys({
           username: Joi.string(),
           password: Joi.string(),
