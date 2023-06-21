@@ -129,6 +129,9 @@ export class DeliveryController {
           HttpStatus.NOT_FOUND,
         );
       }
+      if (delivery.state === 'CANCLED') {
+        throw new HttpException('Action not allowed', HttpStatus.FORBIDDEN);
+      }
       const updateDelivery = {
         state: State.ACCPTED_BY_COURIER,
         courierId: req.user.userId,
